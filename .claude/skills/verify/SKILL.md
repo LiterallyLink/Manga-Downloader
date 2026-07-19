@@ -58,6 +58,28 @@ Gotchas:
   and reveals whatever view was underneath, so check
   `#content .view-title` to know where a close will land.
 
+## Dev control server (simplest handle)
+
+`electron . --dev` starts an HTTP control port on **127.0.0.1:9310**
+([main.js](../../../electron/main.js), `startDevControlServer`). Prefer it over
+raw CDP — no WebSocket plumbing:
+
+```bash
+curl -s -X POST http://127.0.0.1:9310/eval --data-binary '(async()=>{ ... })()'
+curl -s "http://127.0.0.1:9310/shot?file=/abs/path.png"
+curl -s http://127.0.0.1:9310/close     # same path as the titlebar X
+```
+
+**Renderer `window.close()` does NOT fire the BrowserWindow `close` event** —
+it exits without running the quit handler. Any test touching quit behavior
+must use `/close`, or it silently proves nothing.
+
+Queueing real downloads for a test: point `settings.json` `libraryPath` at a
+throwaway folder first. `download()` skips chapters already in the library, so
+re-running a test with the same chapters queues nothing — filter against
+`getLibraryManga(id).chapters` and take fresh ones, and queue 20+ if you need
+the queue to still be busy a few seconds later.
+
 ## View lifecycle
 
 `render(root, ...)` always receives `#content` itself, which never leaves the
