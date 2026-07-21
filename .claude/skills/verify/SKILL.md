@@ -14,8 +14,14 @@ Protocol.
 Never drive the app against the real profile: the UI mutates
 `library.json` (reading progress, follows, downloads) as you click.
 
+Substitute your real scratchpad path for `SP` below. It must be absolute and
+outside the repo: a placeholder that fails to expand once left a whole Chromium
+cache tree committed under `./undefined/`. The guard makes that failure loud
+instead of silent, so keep it.
+
 ```bash
-SP=<scratchpad>
+SP=<absolute scratchpad path>
+case "$SP" in /*|[A-Za-z]:*) ;; *) echo "SP is not an absolute path; aborting"; exit 1;; esac
 mkdir -p "$SP/udata"
 cp "$APPDATA/mangashelf/library.json" "$APPDATA/mangashelf/settings.json" "$SP/udata/"
 ./node_modules/.bin/electron . --remote-debugging-port=9222 --user-data-dir="$SP/udata"
